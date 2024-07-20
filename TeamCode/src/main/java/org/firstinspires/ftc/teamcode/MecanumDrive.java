@@ -26,7 +26,7 @@ public class MecanumDrive extends LinearOpMode {
         // step (using the FTC Robot Controller app on the phone).
         frontLeft  = hardwareMap.get(DcMotor.class, "FLmotor");
         frontRight = hardwareMap.get(DcMotor.class, "FRmotor");
-        backLeft  = hardwareMap.get(DcMotor.class, "BLmotor");
+        backLeft  =  hardwareMap.get(DcMotor.class, "BLmotor");
         backRight = hardwareMap.get(DcMotor.class, "BRmotor");
 
         // Set the motor directions. This is important for Mecanum wheels.
