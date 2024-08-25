@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Mecanum Drive", group="Linear Opmode")
-@Disabled
+//@Disabled
 public class _MecanumDrive_java extends LinearOpMode {
 
     public Object localizer;
