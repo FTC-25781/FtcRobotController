@@ -91,7 +91,6 @@ public class SensorHuskyLens extends LinearOpMode {
                             } else {
                                 telemetry.addData("Status", "Block is off-center. Adjust by X: %d, Y: %d", distanceX, distanceY);
                             }
-
                         }
                     }
                 } else {
