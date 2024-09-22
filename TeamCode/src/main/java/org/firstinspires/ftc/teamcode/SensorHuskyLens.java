@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
@@ -13,6 +14,7 @@ public class SensorHuskyLens extends LinearOpMode {
 
     private final int READ_PERIOD = 1;
     private HuskyLens huskyLens;
+    private Servo cameraServo;  // Servo for controlling the camera orientation
     private ElapsedTime nClock = new ElapsedTime();  // Initialize the ElapsedTime clock
 
     // Constants for screen dimensions and crosshair
@@ -21,10 +23,17 @@ public class SensorHuskyLens extends LinearOpMode {
     private final int CROSSHAIR_X = SCREEN_WIDTH / 2;   // 160
     private final int CROSSHAIR_Y = SCREEN_HEIGHT / 2;  // 120
 
+    // Threshold for deciding horizontal vs vertical
+    private final int ORIENTATION_THRESHOLD = 20;  // Difference between width and height to switch orientation
+    private String lastOrientation = "";  // To store the last orientation (either "Horizontal" or "Vertical")
+
     @Override
     public void runOpMode() {
         // Initialize HuskyLens, ensure it's configured correctly in the Control Hub
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
+
+        // Initialize the camera servo
+        cameraServo = hardwareMap.get(Servo.class, "cameraServo");  // Add the camera servo
 
         // Set the read rate limit for reading blocks from the sensor
         Deadline rateLimit = new Deadline(READ_PERIOD, TimeUnit.SECONDS);
@@ -60,8 +69,8 @@ public class SensorHuskyLens extends LinearOpMode {
                     telemetry.addData("Block count", blocks.length);
 
                     for (int i = 0; i < blocks.length; i++) {
-                        // Only process the block with ID 3 (Yellow)
-                        if (blocks[i].id == 3) {
+                        // Only process the block with ID 1 (Yellow)
+                        if (blocks[i].id == 1) {
                             int centerX = blocks[i].x;  // Center x of the block
                             int centerY = blocks[i].y;  // Center y of the block
                             int width = blocks[i].width;
@@ -74,14 +83,29 @@ public class SensorHuskyLens extends LinearOpMode {
                             int y2 = centerY + (height / 2);  // Bottom-right y
 
                             // Determine orientation: Horizontal or Vertical
-                            String orientation = (width > height) ? "Horizontal" : "Vertical";
+                            String currentOrientation;
+                            if (Math.abs(width - height) > ORIENTATION_THRESHOLD) {
+                                currentOrientation = (width > height) ? "Horizontal" : "Vertical";
+                            } else {
+                                currentOrientation = lastOrientation;  // Maintain previous orientation if the difference is too small
+                            }
+
+                            // Adjust servo based on the block's orientation if it has changed
+                            if (!currentOrientation.equals(lastOrientation)) {
+                                if (currentOrientation.equals("Horizontal")) {
+                                    cameraServo.setPosition(0.5);  // Servo position for horizontal
+                                } else if (currentOrientation.equals("Vertical")) {
+                                    cameraServo.setPosition(0.0);  // Servo position for vertical
+                                }
+                                lastOrientation = currentOrientation;  // Update last orientation
+                            }
 
                             // Calculate the distance from the center of the block to the crosshair
                             int distanceX = CROSSHAIR_X - centerX;
                             int distanceY = CROSSHAIR_Y - centerY;
 
                             // Display bounding box, orientation, and distance from crosshair
-                            telemetry.addData("Block Info", "Center: (%d, %d), Orientation: %s", centerX, centerY, orientation);
+                            telemetry.addData("Block Info", "Center: (%d, %d), Orientation: %s", centerX, centerY, currentOrientation);
                             telemetry.addData("Bounding Box", "Top-Left: (%d, %d), Bottom-Right: (%d, %d)", x1, y1, x2, y2);
                             telemetry.addData("Distance from Crosshair", "X: %d, Y: %d", distanceX, distanceY);
 
